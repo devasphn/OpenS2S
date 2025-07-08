@@ -134,8 +134,7 @@ bash scripts/train_continue.sh
 ## Acknowledgements
 
 We would like to thank the following projects and individuals for their contributions to the development of OpenS2S:
-* [Kimi-Audio](https://github.com/MoonshotAI/Kimi-Audio)
-* [LLaMA-Omni](https://github.com/ictnlp/LLaMA-Omni)
+* [LLaMA-Omni2](https://github.com/ictnlp/LLaMA-Omni2)
 * [Whisper](https://github.com/openai/whisper)
 * [Transformers](https://github.com/huggingface/transformers)
 * [GLM-4-Voice](https://github.com/THUDM/GLM-4-Voice)
