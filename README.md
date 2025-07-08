@@ -151,7 +151,7 @@ Thank you to all the open-source projects for their contributions to this projec
 ## Citation
 If you find our project useful, hope you can star our repo and cite our paper as follows:
 ```
-@article{wang2024opens2s,
+@article{wang2025opens2s,
   title={OpenS2S : Advancing Fully Open-Source End-to-End Empathetic Large Speech Language Model},
   author={Wang Chen, Peng Tianyu, Yang Wen, Bai Yinan, Wang Guangfu, Lin Jun, Jia Lanpeng, Wu Lingxiang, Wang Jinqiao, Zong Chengqing, Zhang Jiajun},
   journal={arXiv preprint arXiv:2507.05177},
