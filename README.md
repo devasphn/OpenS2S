@@ -135,10 +135,11 @@ bash scripts/train_continue.sh
 
 We would like to thank the following projects and individuals for their contributions to the development of OpenS2S:
 * [LLaMA-Omni2](https://github.com/ictnlp/LLaMA-Omni2)
-* [Whisper](https://github.com/openai/whisper)
 * [Transformers](https://github.com/huggingface/transformers)
 * [GLM-4-Voice](https://github.com/THUDM/GLM-4-Voice)
-* [Qwen](https://github.com/QwenLM/Qwen/tree/main)
+* [Qwen3](https://github.com/QwenLM/Qwen3)
+* [Qwen2-Audio](https://github.com/QwenLM/Qwen2-Audio)
+
 
 Thank you to all the open-source projects for their contributions to this project!
 
