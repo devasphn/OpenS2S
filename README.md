@@ -29,7 +29,7 @@ More examples can be found in the [project page](https://casia-lm.github.io/Open
 ### Setup
 
 ```bash
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 
