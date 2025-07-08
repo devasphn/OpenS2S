@@ -9,7 +9,7 @@ We present OpenS2S, a fully open-source, transparent and end-to-end large speech
 ## Model Architecture
 
 <p align="center">
-    <img src="figures/Architecture.png" width="80%" height="80%">
+    <img src="figures/Architecture.png" width="100%" height="100%">
 </p>
 
 As shown in the figure, OpenS2S consists of the following main components:
