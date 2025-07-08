@@ -3,12 +3,14 @@
 We present OpenS2S, a fully open-source, transparent and end-to-end large speech language model designed to enable empathetic speech interactions.
 
 
-<a href='https://huggingface.co/CASIA-LM/OpenS2S'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Checkpoint-blue'></a> <a href='https://huggingface.co/datasets/CASIA-LM/OpenS2S_Datasets'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue'></a> <a href=''><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a> <a href='https://casia-lm.github.io/OpenS2S'><img src='https://img.shields.io/badge/Project-Page-Green'></a> 
+<a href='https://huggingface.co/CASIA-LM/OpenS2S'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Checkpoint-blue'></a> <a href='https://huggingface.co/datasets/CASIA-LM/OpenS2S_Datasets'><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Dataset-blue'></a> <a href='https://arxiv.org/pdf/2507.05177'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a> <a href='https://casia-lm.github.io/OpenS2S'><img src='https://img.shields.io/badge/Project-Page-Green'></a> 
 
 
 ## Model Architecture
 
-![architecture](figures/Architecture.png)
+<p align="center">
+    <img src="figures/Architecture.png" width="80%" height="80%">
+</p>
 
 As shown in the figure, OpenS2S consists of the following main components:
 
@@ -131,6 +133,18 @@ python src/instruction_dataset.py offline \
 bash scripts/train_continue.sh
 ```
 
+## Acknowledgements
+
+We would like to thank the following projects and individuals for their contributions to the development of OpenS2S:
+* [Kimi-Audio](https://github.com/MoonshotAI/Kimi-Audio)
+* [LLaMA-Omni](https://github.com/ictnlp/LLaMA-Omni)
+* [Whisper](https://github.com/openai/whisper)
+* [Transformers](https://github.com/huggingface/transformers)
+* [GLM-4-Voice](https://github.com/THUDM/GLM-4-Voice)
+* [Qwen](https://github.com/QwenLM/Qwen/tree/main)
+
+Thank you to all the open-source projects for their contributions to this project!
+
 
 
 ## License
@@ -139,5 +153,10 @@ bash scripts/train_continue.sh
 ## Citation
 If you find our project useful, hope you can star our repo and cite our paper as follows:
 ```
-TODO
+@article{wang2024opens2s,
+  title={OpenS2S : Advancing Fully Open-Source End-to-End Empathetic Large Speech Language Model},
+  author={Wang Chen, Peng Tianyu, Yang Wen, Bai Yinan, Wang Guangfu, Lin Jun, Jia Lanpeng, Wu Lingxiang, Wang Jinqiao, Zong Chengqing, Zhang Jiajun},
+  journal={arXiv preprint arXiv:2507.05177},
+  year={2025}
+}
 ```
