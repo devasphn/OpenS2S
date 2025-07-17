@@ -434,8 +434,8 @@ if __name__ == "__main__":
     parser.add_argument("--controller-address", type=str,
         default="http://localhost:21001")
     parser.add_argument("--model-name", type=str, default="omnispeech")
-    parser.add_argument("--model-path", type=str, default="./omnispeech_checkpoints")
-    parser.add_argument("--flow-path", type=str, default="./omnispeech_checkpoints")
+    parser.add_argument("--model-path", type=str, default="./OpenS2S")
+    parser.add_argument("--flow-path", type=str, default="./glm-4-voice-decoder")
     parser.add_argument("--limit-model-concurrency", type=int, default=5)
     parser.add_argument("--stream-interval", type=int, default=1)
     parser.add_argument("--no-register", action="store_true")
