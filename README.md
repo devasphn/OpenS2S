@@ -33,10 +33,15 @@ pip install -r requirements.txt
 ```
 
 
-### Prepare the pretrained OpenS2S checkpoint
+### Prepare 
 
-Download the pretrained OpenS2S model from [Huggingface](https://huggingface.co/CASIA-LM/OpenS2S).
+1. Prepare the pretrained OpenS2S checkpoint
 
+&emsp;&emsp;Download the pretrained OpenS2S model from [CASIA-LM/OpenS2S](https://huggingface.co/CASIA-LM/OpenS2S).
+
+2. Prepare the Token2Wav Decoder
+
+&emsp;&emsp;Download the decoder model from [THUDM/glm-4-voice-decoder](https://huggingface.co/THUDM/glm-4-voice-decoder).
 
 ### Inference
 
@@ -46,7 +51,7 @@ python controller.py
 ```
 2. Start the model server
 ```bash
-python model_worker.py
+python model_worker.py --model-path your_opens2s_path --flow-path your_decoder_path
 ```
 
 3. Launching web service locally
