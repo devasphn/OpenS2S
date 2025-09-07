@@ -1,0 +1,36 @@
+<!-- FILE: static/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time OpenS2S Agent</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans">
+    <div class="container mx-auto p-8">
+        <h1 class="text-4xl font-bold text-center mb-4 text-purple-400">Real-Time Streaming Voice Agent</h1>
+        <p class="text-center text-gray-400 mb-8">Powered by OpenS2S</p>
+        
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 max-w-3xl mx-auto">
+            <div class="flex items-center justify-center mb-6">
+                <button id="startButton" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105">
+                    Start Listening
+                </button>
+                <button id="stopButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105 hidden">
+                    Stop Listening
+                </button>
+            </div>
+            
+            <div id="status" class="text-center text-lg text-yellow-400 mb-6 h-8"></div>
+            
+            <div class="space-y-4">
+                <div class="bg-gray-700 p-4 rounded-lg">
+                    <h2 class="text-xl font-semibold mb-2 text-purple-300">Agent Response (Text)</h2>
+                    <p id="responseText" class="text-gray-200 min-h-[50px]"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="static/main.js"></script>
+</body>
+</html>
