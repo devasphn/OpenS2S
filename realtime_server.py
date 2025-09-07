@@ -5,6 +5,7 @@ import json
 import logging
 from io import BytesIO
 
+import numpy as np  # ADD THIS LINE: Import numpy
 import requests
 import soundfile as sf
 import uvicorn
@@ -24,7 +25,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 vad = VAD()
 
 CONTROLLER_URL = "http://localhost:21001"
-MODEL_WORKER_URL = "http://localhost:21002" # Directly calling worker for simplicity
+MODEL_WORKER_URL = "http://localhost:21002"
 
 class ConnectionManager:
     def __init__(self):
@@ -49,8 +50,8 @@ async def audio_processing_task(websocket: WebSocket):
     audio_buffer = bytearray()
     is_speaking = False
     speech_started = False
-    min_speech_duration_ms = 250  # Minimum duration of speech to be considered valid
-    max_silence_duration_ms = 700  # Maximum silence duration to trigger end of speech
+    min_speech_duration_ms = 250
+    max_silence_duration_ms = 700
 
     min_speech_samples = 16 * min_speech_duration_ms
     max_silence_samples = 16 * max_silence_duration_ms
@@ -58,8 +59,29 @@ async def audio_processing_task(websocket: WebSocket):
 
     try:
         while True:
-            audio_chunk = await websocket.receive_bytes()
-            confidence = vad(audio_chunk)
+            # MODIFICATION START: Decode browser audio before VAD
+            webm_chunk = await websocket.receive_bytes()
+            
+            try:
+                # Use soundfile to read the WebM chunk from memory
+                audio_float32, sample_rate = sf.read(BytesIO(webm_chunk))
+                if audio_float32.ndim > 1:
+                    audio_float32 = np.mean(audio_float32, axis=1) # mix to mono
+                if sample_rate != 16000:
+                    # This should not happen if the client is configured correctly, but as a fallback
+                    # You would need to resample here. For now, we assume 16kHz from client.
+                    pass
+                
+                # Convert to 16-bit PCM for VAD
+                audio_int16 = (audio_float32 * 32767).astype(np.int16)
+                pcm_chunk = audio_int16.tobytes()
+
+            except Exception as e:
+                logger.warning(f"Could not decode audio chunk: {e}. Skipping.")
+                continue
+
+            confidence = vad(pcm_chunk)
+            # MODIFICATION END
 
             if confidence > 0.5:
                 is_speaking = True
@@ -70,7 +92,7 @@ async def audio_processing_task(websocket: WebSocket):
                     await manager.send_json({"status": "speech_started"}, websocket)
             else:
                 if is_speaking:
-                    silence_counter += len(audio_chunk) // 2  # 16-bit samples
+                    silence_counter += len(pcm_chunk) // 2
                     if silence_counter > max_silence_samples:
                         is_speaking = False
                         speech_started = False
@@ -78,7 +100,7 @@ async def audio_processing_task(websocket: WebSocket):
                         await manager.send_json({"status": "speech_ended"}, websocket)
 
             if speech_started:
-                audio_buffer.extend(audio_chunk)
+                audio_buffer.extend(pcm_chunk)
 
             if not is_speaking and len(audio_buffer) > min_speech_samples:
                 logger.info(f"Processing audio buffer of size {len(audio_buffer)}")
@@ -94,7 +116,6 @@ async def audio_processing_task(websocket: WebSocket):
 
 async def process_and_stream_response(buffer: bytearray, websocket: WebSocket):
     """Converts audio buffer to WAV, sends to model worker, and streams response."""
-    # Convert raw PCM to WAV in memory
     wav_buffer = BytesIO()
     with sf.SoundFile(wav_buffer, 'w', samplerate=16000, channels=1, subtype='PCM_16', format='WAV') as f:
         f.write(np.frombuffer(buffer, dtype=np.int16))
