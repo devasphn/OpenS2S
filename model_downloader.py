@@ -53,13 +53,13 @@ class ModelDownloader:
                 "repo_id": "THUDM/glm-4-voice-decoder",
                 "local_dir": self.models_dir / "glm-4-voice-decoder",
                 "required_files": [
-                    "config.json",
+                    "config.yaml",
                     "flow.pt",
                     "hift.pt"
                 ],
                 "required_patterns": [],
                 "size_estimate": "~5GB",
-                "description": "GLM-4 Voice Decoder with flow and hift models"
+                "description": "GLM-4 Voice Decoder with flow and hift models (uses YAML config)"
             }
         }
     

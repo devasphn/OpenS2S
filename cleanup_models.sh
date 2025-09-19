@@ -67,15 +67,20 @@ show_model_status() {
         fi
         
     elif [ "$model_name" = "GLM-4-Voice-Decoder" ]; then
-        local required_files=("config.json" "flow.pt" "hift.pt")
+        local required_files=("config.yaml" "flow.pt" "hift.pt")
         local missing=0
-        
+
         for file in "${required_files[@]}"; do
             if [ ! -f "$model_path/$file" ]; then
                 missing=$((missing + 1))
             elif [[ "$file" == *.pt ]]; then
                 local file_size=$(stat -c%s "$model_path/$file" 2>/dev/null || echo "0")
                 if [ "$file_size" -lt 1000000 ]; then
+                    missing=$((missing + 1))
+                fi
+            elif [[ "$file" == *.yaml ]]; then
+                local file_size=$(stat -c%s "$model_path/$file" 2>/dev/null || echo "0")
+                if [ "$file_size" -lt 100 ]; then
                     missing=$((missing + 1))
                 fi
             fi
@@ -167,17 +172,22 @@ case $choice in
             fi
         fi
         
-        # Check GLM-4-Voice-Decoder
+        # Check GLM-4-Voice-Decoder (uses YAML config)
         if [ -d "/workspace/models/glm-4-voice-decoder" ]; then
             missing_glm=0
-            required_files=("config.json" "flow.pt" "hift.pt")
-            
+            required_files=("config.yaml" "flow.pt" "hift.pt")
+
             for file in "${required_files[@]}"; do
                 if [ ! -f "/workspace/models/glm-4-voice-decoder/$file" ]; then
                     missing_glm=$((missing_glm + 1))
                 elif [[ "$file" == *.pt ]]; then
                     file_size=$(stat -c%s "/workspace/models/glm-4-voice-decoder/$file" 2>/dev/null || echo "0")
                     if [ "$file_size" -lt 1000000 ]; then
+                        missing_glm=$((missing_glm + 1))
+                    fi
+                elif [[ "$file" == *.yaml ]]; then
+                    file_size=$(stat -c%s "/workspace/models/glm-4-voice-decoder/$file" 2>/dev/null || echo "0")
+                    if [ "$file_size" -lt 100 ]; then
                         missing_glm=$((missing_glm + 1))
                     fi
                 fi

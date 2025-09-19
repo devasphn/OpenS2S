@@ -144,8 +144,8 @@ openspeech_files=("config.json" "tokenizer.json" "tokenizer_config.json")
 check_openspeech=$(check_model "OpenS2S" "/workspace/models/OpenS2S" "${openspeech_files[@]}")
 openspeech_status=$?
 
-# Check GLM-4-Voice-Decoder model with all required files
-glm_files=("config.json" "flow.pt" "hift.pt")
+# Check GLM-4-Voice-Decoder model with all required files (uses YAML config)
+glm_files=("config.yaml" "flow.pt" "hift.pt")
 check_glm=$(check_model "GLM-4-Voice-Decoder" "/workspace/models/glm-4-voice-decoder" "${glm_files[@]}")
 glm_status=$?
 

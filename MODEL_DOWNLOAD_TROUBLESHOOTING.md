@@ -199,14 +199,24 @@ EOF
 | Model | Size | Required Files | Description |
 |-------|------|----------------|-------------|
 | OpenS2S | ~20GB | config.json, tokenizer.json, tokenizer_config.json, *.safetensors/*.bin | Main speech-to-speech model with tokenizer |
-| GLM-4-Voice-Decoder | ~5GB | config.json, flow.pt, hift.pt | Voice decoder with flow and hift models |
+| GLM-4-Voice-Decoder | ~5GB | config.yaml, flow.pt, hift.pt | Voice decoder with flow and hift models (uses YAML config) |
 
 ### Critical File Validation:
-- **config.json**: Must exist and be >50 bytes
+- **config.json** (OpenS2S): Must exist and be >50 bytes
+- **config.yaml** (GLM-4-Voice-Decoder): Must exist and be >100 bytes
 - **tokenizer.json**: Must exist and be >1KB
 - **flow.pt**: Must exist and be >1MB
 - **hift.pt**: Must exist and be >1MB
 - **Model weights**: At least one *.safetensors or *.bin file >100MB
+
+### Why GLM-4-Voice-Decoder Uses YAML Instead of JSON:
+The THUDM/glm-4-voice-decoder repository uses `config.yaml` instead of the standard `config.json` because:
+- **Different Framework**: GLM-4-Voice-Decoder is built with a different framework that prefers YAML configuration
+- **Complex Configuration**: YAML format allows for more readable complex configurations with comments
+- **Repository Convention**: THUDM repositories often use YAML for configuration files
+- **Compatibility**: The model loading code in OpenS2S handles both JSON and YAML configurations
+
+This is why our validation logic checks for `config.yaml` for GLM-4-Voice-Decoder but `config.json` for OpenS2S.
 
 ## 🔄 Recovery Procedures
 

@@ -114,9 +114,9 @@ print_header "Checking GLM-4-Voice-Decoder model status..."
 if [ -d "/workspace/models/glm-4-voice-decoder" ]; then
     print_warning "GLM-4-Voice-Decoder directory exists, checking completeness..."
 
-    # Check for required files with comprehensive validation
+    # Check for required files with comprehensive validation (GLM-4 uses YAML config)
     missing_glm=0
-    required_glm_files=("config.json" "flow.pt" "hift.pt")
+    required_glm_files=("config.yaml" "flow.pt" "hift.pt")
 
     for file in "${required_glm_files[@]}"; do
         if [ ! -f "/workspace/models/glm-4-voice-decoder/$file" ]; then
@@ -164,8 +164,8 @@ try:
         ignore_patterns=["*.git*", "README.md", "*.md", ".gitattributes"]
     )
 
-    # Verify critical files are present
-    required_files = ["config.json", "flow.pt", "hift.pt"]
+    # Verify critical files are present (GLM-4 uses YAML config)
+    required_files = ["config.yaml", "flow.pt", "hift.pt"]
     missing_files = []
 
     for file in required_files:
@@ -179,7 +179,7 @@ try:
         print(f"⚠️  Missing files after download: {missing_files}")
         print("🔄 Attempting to download missing files individually...")
 
-        for file in ["config.json", "flow.pt", "hift.pt"]:
+        for file in ["config.yaml", "flow.pt", "hift.pt"]:
             file_path = f"/workspace/models/glm-4-voice-decoder/{file}"
             if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
                 try:
@@ -241,11 +241,11 @@ else
     openspeech_errors=$((openspeech_errors + 1))
 fi
 
-# Verify GLM-4-Voice-Decoder model
+# Verify GLM-4-Voice-Decoder model (uses YAML config)
 print_header "Verifying GLM-4-Voice-Decoder model..."
 glm_errors=0
 
-required_glm_files=("config.json" "flow.pt" "hift.pt")
+required_glm_files=("config.yaml" "flow.pt" "hift.pt")
 for file in "${required_glm_files[@]}"; do
     if [ -f "/workspace/models/glm-4-voice-decoder/$file" ]; then
         file_size=$(stat -c%s "/workspace/models/glm-4-voice-decoder/$file" 2>/dev/null || echo "0")
