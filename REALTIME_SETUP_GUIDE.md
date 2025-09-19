@@ -233,6 +233,26 @@ pkill -f realtime_server.py
 python realtime_server.py --host 0.0.0.0 --port 8765
 ```
 
+**4. Model Download Issues**
+
+**Problem**: Git LFS errors or download failures
+
+**Quick Solutions**:
+```bash
+# Emergency manual download
+chmod +x download_models_manual.sh
+./download_models_manual.sh
+
+# Python-based downloader
+python model_downloader.py --models-dir /workspace/models
+
+# Verify models
+chmod +x verify_models.sh
+./verify_models.sh
+```
+
+**For comprehensive troubleshooting**: See `MODEL_DOWNLOAD_TROUBLESHOOTING.md`
+
 **4. Model Loading Errors**
 ```bash
 # Check model paths

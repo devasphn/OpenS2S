@@ -21,8 +21,10 @@ apt-get install -y \
     libportaudio2 \
     libportaudiocpp0 \
     git \
+    git-lfs \
     wget \
-    curl
+    curl \
+    ca-certificates
 
 # 2. Python Environment Setup
 echo "🐍 Setting up Python environment..."
@@ -83,35 +85,101 @@ else
         psutil==5.9.8
 fi
 
-# 7. Download Model Checkpoints
-echo "🤖 Downloading model checkpoints..."
+# 7. Download Model Checkpoints (Robust Method)
+echo "🤖 Downloading model checkpoints with multiple fallback strategies..."
 
-# Create models directory
-mkdir -p /workspace/models
+# Install huggingface-hub for reliable downloads
+echo "📦 Installing huggingface-hub for model downloads..."
+pip install huggingface-hub>=0.25.0
 
-# Download OpenS2S model (11B parameters)
-echo "Downloading OpenS2S model..."
-cd /workspace/models
-if [ ! -d "OpenS2S" ]; then
-    echo "Installing git-lfs for large file support..."
-    git lfs install
-    echo "Cloning OpenS2S model (this may take 10-15 minutes)..."
-    git clone https://huggingface.co/CASIA-LM/OpenS2S
-else
-    echo "✅ OpenS2S model already exists"
-fi
+# Initialize Git LFS
+echo "🔧 Initializing Git LFS..."
+git lfs install 2>/dev/null || {
+    echo "⚠️  Git LFS initialization failed, but continuing with Python-based download"
+}
 
-# Download GLM-4-Voice-Decoder
-echo "Downloading GLM-4-Voice-Decoder..."
-if [ ! -d "glm-4-voice-decoder" ]; then
-    echo "Cloning GLM-4-Voice-Decoder (this may take 5-10 minutes)..."
-    git clone https://huggingface.co/THUDM/glm-4-voice-decoder
-else
-    echo "✅ GLM-4-Voice-Decoder already exists"
-fi
-
-# Return to OpenS2S directory
+# Use Python-based downloader (primary method)
+echo "🚀 Using robust Python-based model downloader..."
 cd /workspace/OpenS2S
+
+if [ -f "model_downloader.py" ]; then
+    python model_downloader.py --models-dir /workspace/models || {
+        echo "⚠️  Python downloader failed, trying manual download script..."
+        if [ -f "download_models_manual.sh" ]; then
+            chmod +x download_models_manual.sh
+            ./download_models_manual.sh || {
+                echo "❌ Manual download also failed, trying Git LFS fallback..."
+
+                # Fallback to Git LFS method
+                cd /workspace/models
+
+                if [ ! -d "OpenS2S" ]; then
+                    echo "📥 Fallback: Cloning OpenS2S with Git LFS..."
+                    git clone https://huggingface.co/CASIA-LM/OpenS2S || {
+                        echo "❌ Git LFS download failed for OpenS2S"
+                    }
+                fi
+
+                if [ ! -d "glm-4-voice-decoder" ]; then
+                    echo "📥 Fallback: Cloning GLM-4-Voice-Decoder with Git LFS..."
+                    git clone https://huggingface.co/THUDM/glm-4-voice-decoder || {
+                        echo "❌ Git LFS download failed for GLM-4-Voice-Decoder"
+                    }
+                fi
+
+                cd /workspace/OpenS2S
+            }
+        else
+            echo "❌ Manual download script not found"
+        fi
+    }
+else
+    echo "⚠️  Python downloader not found, using Git LFS method..."
+
+    # Create models directory
+    mkdir -p /workspace/models
+    cd /workspace/models
+
+    # Download OpenS2S model
+    if [ ! -d "OpenS2S" ]; then
+        echo "📥 Downloading OpenS2S model (this may take 10-15 minutes)..."
+        git clone https://huggingface.co/CASIA-LM/OpenS2S || {
+            echo "❌ Failed to download OpenS2S model"
+        }
+    else
+        echo "✅ OpenS2S model already exists"
+    fi
+
+    # Download GLM-4-Voice-Decoder
+    if [ ! -d "glm-4-voice-decoder" ]; then
+        echo "📥 Downloading GLM-4-Voice-Decoder (this may take 5-10 minutes)..."
+        git clone https://huggingface.co/THUDM/glm-4-voice-decoder || {
+            echo "❌ Failed to download GLM-4-Voice-Decoder"
+        }
+    else
+        echo "✅ GLM-4-Voice-Decoder already exists"
+    fi
+
+    cd /workspace/OpenS2S
+fi
+
+# Verify model downloads
+echo "🔍 Verifying model downloads..."
+if [ -f "verify_models.sh" ]; then
+    chmod +x verify_models.sh
+    ./verify_models.sh || {
+        echo "⚠️  Model verification failed. You may need to download models manually."
+        echo "💡 Try running: ./download_models_manual.sh"
+    }
+else
+    echo "⚠️  Model verification script not found"
+    # Basic verification
+    if [ -d "/workspace/models/OpenS2S" ] && [ -d "/workspace/models/glm-4-voice-decoder" ]; then
+        echo "✅ Model directories found"
+    else
+        echo "❌ Model directories missing"
+    fi
+fi
 
 # 8. Verify CUDA and GPU
 echo "🔍 Verifying CUDA setup..."

@@ -75,6 +75,9 @@ required_realtime_files=(
     "requirements_fixed.txt"
     "install_dependencies.sh"
     "DEPENDENCY_FIX_GUIDE.md"
+    "download_models_manual.sh"
+    "model_downloader.py"
+    "verify_models.sh"
 )
 
 missing_realtime=0
