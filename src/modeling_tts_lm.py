@@ -13,8 +13,8 @@ from transformers.processing_utils import Unpack
 
 from transformers import Qwen2Config
 from transformers import Qwen2ForCausalLM as HFQwen2ForCausalLM
-from transformers import Qwen3Config
-from transformers import Qwen3ForCausalLM as HFQwen3ForCausalLM
+from transformers import Qwen2Config
+from transformers import Qwen2ForCausalLM as HFQwen2ForCausalLM
 
 from src.constants import IGNORE_INDEX
 
@@ -97,7 +97,7 @@ class Qwen2ForCausalLM(HFQwen2ForCausalLM):
                 **kwargs
             )
 
-class Qwen3ForCausalLM(HFQwen3ForCausalLM):
+class Qwen2ForCausalLM(HFQwen2ForCausalLM):
     """
     overwrite forward to support spk_emb
     """
@@ -177,6 +177,5 @@ class Qwen3ForCausalLM(HFQwen3ForCausalLM):
             return output
 
 TTS_LM_MAPPING = {
-    "qwen2": Qwen2ForCausalLM,
-    "qwen3": Qwen3ForCausalLM
+    "qwen2": Qwen2ForCausalLM
 }

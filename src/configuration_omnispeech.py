@@ -9,8 +9,10 @@ from transformers.models.auto import CONFIG_MAPPING
 logger = logging.get_logger(__name__)
 
 class OmniSpeechConfig(PretrainedConfig):
+    model_type = "omnispeech"
+
     def __init__(
-        self, 
+        self,
         audio_encoder_config=None,
         llm_config=None,
         tts_lm_config=None,
@@ -48,12 +50,12 @@ class OmniSpeechConfig(PretrainedConfig):
             if "model_type" in llm_config:
                 pass
             else:
-                logger.info("llm config is None. Initializing with qwen3")
-                llm_config["model_type"] = "qwen3"
+                logger.info("llm config is None. Initializing with qwen2")
+                llm_config["model_type"] = "qwen2"
         elif llm_config is None:
-            logger.info("llm config is None. Initializing with qwen3")
+            logger.info("llm config is None. Initializing with qwen2")
             llm_config = {
-                "model_type": "qwen3"
+                "model_type": "qwen2"
             }
         else:
             raise NotImplementedError
@@ -62,12 +64,12 @@ class OmniSpeechConfig(PretrainedConfig):
             if "model_type" in tts_lm_config:
                 pass
             else:
-                logger.info("tts lm config is None. Initializing with qwen3")
-                tts_lm_config["model_type"] = "qwen3"
+                logger.info("tts lm config is None. Initializing with qwen2")
+                tts_lm_config["model_type"] = "qwen2"
         elif tts_lm_config is None:
-            logger.info("tts lm config is None. Initializing with qwen3")
+            logger.info("tts lm config is None. Initializing with qwen2")
             tts_lm_config = {
-                "model_type": "qwen3"
+                "model_type": "qwen2"
             }
 
         self.audio_encoder_config = CONFIG_MAPPING[audio_encoder_config["model_type"]](**audio_encoder_config)
