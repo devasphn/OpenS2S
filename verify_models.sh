@@ -40,77 +40,112 @@ fi
 
 print_status "Models directory exists: /workspace/models"
 
-# Function to check model directory
+# Function to check model directory with comprehensive validation
 check_model() {
     local model_name="$1"
     local model_path="$2"
-    local required_files=("${@:3}")
-    
+    shift 2
+    local required_files=("$@")
+
     print_header "Checking $model_name model..."
-    
+
     if [ ! -d "$model_path" ]; then
         print_error "$model_name directory not found: $model_path"
         return 1
     fi
-    
+
     print_status "$model_name directory exists"
-    
-    # Check required files
+
+    # Check required files with size validation
     local missing_files=0
     for file in "${required_files[@]}"; do
         if [ -f "$model_path/$file" ]; then
-            print_status "$file found"
+            local file_size=$(stat -c%s "$model_path/$file" 2>/dev/null || echo "0")
+            if [ "$file_size" -eq 0 ]; then
+                print_error "$file found but is empty (0 bytes)"
+                missing_files=$((missing_files + 1))
+            elif [ "$file_size" -lt 50 ]; then
+                print_warning "$file found but suspiciously small ($file_size bytes)"
+                print_status "$file found (but check content)"
+            else
+                print_status "$file found ($file_size bytes)"
+            fi
         else
             print_error "$file missing"
             missing_files=$((missing_files + 1))
         fi
     done
-    
-    # Check for model weight files
-    local has_weights=false
-    
-    # Check for various weight file formats
-    if [ -f "$model_path/pytorch_model.bin" ]; then
-        print_status "pytorch_model.bin found"
-        has_weights=true
-    elif [ -f "$model_path/model.safetensors" ]; then
-        print_status "model.safetensors found"
-        has_weights=true
-    elif ls "$model_path"/*.safetensors 1> /dev/null 2>&1; then
-        local safetensors_count=$(ls "$model_path"/*.safetensors | wc -l)
-        print_status "$safetensors_count safetensors files found"
-        has_weights=true
-    elif ls "$model_path"/*.bin 1> /dev/null 2>&1; then
-        local bin_count=$(ls "$model_path"/*.bin | wc -l)
-        print_status "$bin_count bin files found"
-        has_weights=true
+
+    # Model-specific validation
+    if [ "$model_name" = "OpenS2S" ]; then
+        # Check for model weight files
+        local has_weights=false
+
+        # Check for various weight file formats
+        if [ -f "$model_path/pytorch_model.bin" ]; then
+            print_status "pytorch_model.bin found"
+            has_weights=true
+        elif [ -f "$model_path/model.safetensors" ]; then
+            print_status "model.safetensors found"
+            has_weights=true
+        elif ls "$model_path"/*.safetensors 1> /dev/null 2>&1; then
+            local safetensors_count=$(ls "$model_path"/*.safetensors | wc -l)
+            print_status "$safetensors_count safetensors files found"
+            has_weights=true
+        elif ls "$model_path"/*.bin 1> /dev/null 2>&1; then
+            local bin_count=$(ls "$model_path"/*.bin | wc -l)
+            print_status "$bin_count bin files found"
+            has_weights=true
+        fi
+
+        if [ "$has_weights" = false ]; then
+            print_error "No model weight files found (.bin or .safetensors)"
+            missing_files=$((missing_files + 1))
+        fi
+    elif [ "$model_name" = "GLM-4-Voice-Decoder" ]; then
+        # Specific validation for GLM-4-Voice-Decoder
+        if [ -f "$model_path/flow.pt" ]; then
+            local flow_size=$(stat -c%s "$model_path/flow.pt" 2>/dev/null || echo "0")
+            if [ "$flow_size" -gt 1000000 ]; then  # Should be > 1MB
+                print_status "flow.pt found and valid size ($flow_size bytes)"
+            else
+                print_error "flow.pt found but invalid size ($flow_size bytes)"
+                missing_files=$((missing_files + 1))
+            fi
+        fi
+
+        if [ -f "$model_path/hift.pt" ]; then
+            local hift_size=$(stat -c%s "$model_path/hift.pt" 2>/dev/null || echo "0")
+            if [ "$hift_size" -gt 1000000 ]; then  # Should be > 1MB
+                print_status "hift.pt found and valid size ($hift_size bytes)"
+            else
+                print_error "hift.pt found but invalid size ($hift_size bytes)"
+                missing_files=$((missing_files + 1))
+            fi
+        fi
     fi
-    
-    if [ "$has_weights" = false ]; then
-        print_error "No model weight files found (.bin or .safetensors)"
-        missing_files=$((missing_files + 1))
-    fi
-    
-    # Show directory size
+
+    # Show directory size and file count
     local dir_size=$(du -sh "$model_path" 2>/dev/null | cut -f1 || echo "unknown")
-    print_status "$model_name size: $dir_size"
-    
+    local file_count=$(find "$model_path" -type f | wc -l)
+    print_status "$model_name size: $dir_size ($file_count files)"
+
     if [ $missing_files -eq 0 ]; then
         print_status "$model_name verification PASSED"
         return 0
     else
-        print_error "$model_name verification FAILED ($missing_files missing files)"
+        print_error "$model_name verification FAILED ($missing_files missing/invalid files)"
         return 1
     fi
 }
 
-# Check OpenS2S model
-openspeech_files=("config.json" "tokenizer.json")
+# Check OpenS2S model with comprehensive file list
+openspeech_files=("config.json" "tokenizer.json" "tokenizer_config.json")
 check_openspeech=$(check_model "OpenS2S" "/workspace/models/OpenS2S" "${openspeech_files[@]}")
 openspeech_status=$?
 
-# Check GLM-4-Voice-Decoder model  
-glm_files=("config.json")
+# Check GLM-4-Voice-Decoder model with all required files
+glm_files=("config.json" "flow.pt" "hift.pt")
 check_glm=$(check_model "GLM-4-Voice-Decoder" "/workspace/models/glm-4-voice-decoder" "${glm_files[@]}")
 glm_status=$?
 

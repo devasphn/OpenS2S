@@ -78,6 +78,7 @@ required_realtime_files=(
     "download_models_manual.sh"
     "model_downloader.py"
     "verify_models.sh"
+    "cleanup_models.sh"
 )
 
 missing_realtime=0

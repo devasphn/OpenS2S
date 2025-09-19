@@ -62,15 +62,35 @@ wget https://huggingface.co/CASIA-LM/OpenS2S/resolve/main/config.json -O /tmp/te
 ```
 
 ### Issue 5: Partial Downloads
-**Error**: Models exist but verification fails
+**Error**: Models exist but verification fails (missing config.json, flow.pt, hift.pt, etc.)
 
-**Solutions**:
+**Quick Fix**:
 ```bash
-# Remove partial downloads
-rm -rf /workspace/models/OpenS2S
-rm -rf /workspace/models/glm-4-voice-decoder
+# Use cleanup utility to remove only incomplete downloads
+chmod +x cleanup_models.sh
+./cleanup_models.sh
+# Choose option 4: "Clean up only incomplete/partial downloads"
 
-# Re-download with resume capability
+# Re-download missing models
+python model_downloader.py --models-dir /workspace/models
+```
+
+**Manual Cleanup**:
+```bash
+# Remove specific partial downloads
+rm -rf /workspace/models/OpenS2S        # If OpenS2S is incomplete
+rm -rf /workspace/models/glm-4-voice-decoder  # If GLM-4 is incomplete
+
+# Re-download with enhanced validation
+./download_models_manual.sh
+```
+
+**Comprehensive Validation**:
+```bash
+# Check what's missing
+./verify_models.sh
+
+# Use Python downloader with detailed status
 python model_downloader.py --models-dir /workspace/models
 ```
 
@@ -174,12 +194,19 @@ EOF
    - Check for Hugging Face mirrors in your region
    - Use VPN if necessary
 
-## 📊 Expected Model Sizes
+## 📊 Expected Model Sizes and Required Files
 
-| Model | Size | Files |
-|-------|------|-------|
-| OpenS2S | ~20GB | config.json, tokenizer.json, *.safetensors |
-| GLM-4-Voice-Decoder | ~5GB | config.json, *.safetensors |
+| Model | Size | Required Files | Description |
+|-------|------|----------------|-------------|
+| OpenS2S | ~20GB | config.json, tokenizer.json, tokenizer_config.json, *.safetensors/*.bin | Main speech-to-speech model with tokenizer |
+| GLM-4-Voice-Decoder | ~5GB | config.json, flow.pt, hift.pt | Voice decoder with flow and hift models |
+
+### Critical File Validation:
+- **config.json**: Must exist and be >50 bytes
+- **tokenizer.json**: Must exist and be >1KB
+- **flow.pt**: Must exist and be >1MB
+- **hift.pt**: Must exist and be >1MB
+- **Model weights**: At least one *.safetensors or *.bin file >100MB
 
 ## 🔄 Recovery Procedures
 
