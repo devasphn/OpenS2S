@@ -30,7 +30,7 @@ class WebInterfaceServer:
     def __init__(
         self,
         host: str = "0.0.0.0",
-        port: int = 8888,
+        port: int = 8000,
         realtime_ws_url: str = "ws://localhost:8765",
         controller_url: str = "http://localhost:21002"
     ):
@@ -257,7 +257,7 @@ def main():
     
     parser = argparse.ArgumentParser(description="OpenS2S Web Interface Server")
     parser.add_argument("--host", default="0.0.0.0", help="Server host")
-    parser.add_argument("--port", type=int, default=8888, help="Server port")
+    parser.add_argument("--port", type=int, default=8000, help="Server port")
     parser.add_argument("--realtime-ws-url", default="ws://localhost:8765",
                        help="Real-time WebSocket server URL")
     parser.add_argument("--controller-url", default="http://localhost:21002",

@@ -11,7 +11,7 @@ FLOW_PATH="/workspace/models/glm-4-voice-decoder"
 CONTROLLER_PORT=21001
 WORKER_PORT=21002
 WEBSOCKET_PORT=8765
-WEB_PORT=8888
+WEB_PORT=8000
 
 # Colors for output
 RED='\033[0;31m'
@@ -110,6 +110,19 @@ print_header "🚀 Starting OpenS2S Real-time Services"
 # Check if we're in the right directory
 if [ ! -f "controller.py" ] || [ ! -f "model_worker.py" ]; then
     print_error "Please run this script from the OpenS2S directory"
+    print_error "Current directory: $(pwd)"
+    print_error "Expected files: controller.py, model_worker.py"
+    exit 1
+fi
+
+# Check if real-time streaming files exist
+if [ ! -f "realtime_server.py" ] || [ ! -f "vad_processor.py" ]; then
+    print_error "Real-time streaming files not found!"
+    print_error "Please ensure all files from the repository are present:"
+    print_error "- realtime_server.py"
+    print_error "- vad_processor.py"
+    print_error "- web_interface.py"
+    print_error "- realtime_client.html"
     exit 1
 fi
 

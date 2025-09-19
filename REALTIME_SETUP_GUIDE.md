@@ -16,9 +16,9 @@ This guide provides complete instructions for setting up OpenS2S for real-time s
 **Required Ports to Expose:**
 ```
 21001  # Controller HTTP API
-21002  # Model Worker HTTP API  
+21002  # Model Worker HTTP API
 8765   # WebSocket server for real-time audio streaming
-8888   # Web interface for testing
+8000   # Web interface for testing
 ```
 
 ### 2. Initial Setup
@@ -39,7 +39,7 @@ chmod +x start_realtime_services.sh
 
 ### 4. Access Interface
 
-Open your browser to: `http://your-runpod-url:8888`
+Open your browser to: `http://your-runpod-url:8000`
 
 ## 📋 Detailed Setup Instructions
 
@@ -198,7 +198,7 @@ The system tracks:
 
 ### Real-time Dashboard
 
-Access monitoring at: `http://your-runpod-url:8888/monitor`
+Access monitoring at: `http://your-runpod-url:8000/monitor`
 
 ## 🔍 Troubleshooting
 
@@ -277,7 +277,7 @@ export FLASH_ATTENTION_FORCE_FP16=1
 
 ### Basic Real-time Conversation
 
-1. Open `http://your-runpod-url:8888`
+1. Open `http://your-runpod-url:8000`
 2. Click "Connect" to establish WebSocket connection
 3. Click "Start Recording" and speak
 4. Watch VAD indicator turn green when speech detected

@@ -55,8 +55,17 @@ python model_worker.py --model-path your_opens2s_path --flow-path your_decoder_p
 ```
 
 3. Launching web service locally
+
+**Option A: Original Gradio Interface**
 ```bash
 python web_demo.py --port 8888
+```
+
+**Option B: Real-time Streaming Interface (Recommended)**
+```bash
+# Start all real-time services
+./start_realtime_services.sh
+# Access at: http://localhost:8000
 ```
 
 ## Training
