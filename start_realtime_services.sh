@@ -51,7 +51,7 @@ check_port() {
 wait_for_service() {
     local url=$1
     local service_name=$2
-    local max_attempts=30
+    local max_attempts=60
     local attempt=1
     
     print_status "Waiting for $service_name to be ready..."
