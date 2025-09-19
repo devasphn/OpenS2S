@@ -107,6 +107,19 @@ EOF
         print_error "OpenS2S model download failed"
         exit 1
     fi
+
+    # Fix OpenS2S config.json for proper model loading
+    print_header "Fixing OpenS2S config.json..."
+    if [ -f "register_openspeech.py" ]; then
+        python3 register_openspeech.py --model-path "/workspace/models/OpenS2S"
+        if [ $? -eq 0 ]; then
+            print_status "✅ OpenS2S config.json fixed"
+        else
+            print_warning "⚠️  OpenS2S config fix had issues (may still work)"
+        fi
+    else
+        print_warning "⚠️  register_openspeech.py not found, skipping config fix"
+    fi
 fi
 
 # Check if GLM-4-Voice-Decoder already exists and is complete

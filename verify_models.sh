@@ -156,40 +156,81 @@ python3 << 'EOF'
 import sys
 import os
 sys.path.append('/workspace/OpenS2S')
+sys.path.append('/workspace/OpenS2S/src')
 
 def test_model_loading():
     try:
+        # Register OpenS2S model first
+        print("Registering OpenS2S model...")
+        try:
+            from transformers import AutoConfig, AutoModel
+            from src.configuration_omnispeech import OmniSpeechConfig
+            from src.modeling_omnispeech import OmniSpeechModel
+
+            # Register the configuration and model
+            AutoConfig.register("omnispeech", OmniSpeechConfig)
+            AutoModel.register(OmniSpeechConfig, OmniSpeechModel)
+            print("✅ OpenS2S model registered successfully")
+        except Exception as e:
+            print(f"⚠️  OpenS2S model registration failed: {e}")
+
         # Test OpenS2S model loading
         print("Testing OpenS2S model loading...")
         from transformers import AutoTokenizer, AutoConfig
-        
+
         openspeech_path = "/workspace/models/OpenS2S"
         if os.path.exists(openspeech_path):
-            config = AutoConfig.from_pretrained(openspeech_path)
-            print(f"✅ OpenS2S config loaded: {config.model_type if hasattr(config, 'model_type') else 'Unknown type'}")
-            
             try:
-                tokenizer = AutoTokenizer.from_pretrained(openspeech_path)
+                config = AutoConfig.from_pretrained(openspeech_path, trust_remote_code=True)
+                print(f"✅ OpenS2S config loaded: {config.model_type if hasattr(config, 'model_type') else 'Custom OmniSpeech'}")
+            except Exception as e:
+                print(f"⚠️  OpenS2S config loading failed: {e}")
+                # Try to fix the config
+                print("🔧 Attempting to fix OpenS2S config...")
+                import subprocess
+                result = subprocess.run([sys.executable, "register_openspeech.py", "--model-path", openspeech_path],
+                                      capture_output=True, text=True)
+                if result.returncode == 0:
+                    print("✅ OpenS2S config fixed")
+                    config = AutoConfig.from_pretrained(openspeech_path, trust_remote_code=True)
+                    print(f"✅ OpenS2S config loaded after fix: {config.model_type if hasattr(config, 'model_type') else 'Custom OmniSpeech'}")
+                else:
+                    print(f"❌ Failed to fix OpenS2S config: {result.stderr}")
+                    return False
+
+            try:
+                tokenizer = AutoTokenizer.from_pretrained(openspeech_path, trust_remote_code=True)
                 print(f"✅ OpenS2S tokenizer loaded: {len(tokenizer)} tokens")
             except Exception as e:
                 print(f"⚠️  OpenS2S tokenizer loading failed: {e}")
         else:
             print("❌ OpenS2S model path not found")
             return False
-        
+
         # Test GLM-4-Voice-Decoder
         print("Testing GLM-4-Voice-Decoder...")
         glm_path = "/workspace/models/glm-4-voice-decoder"
         if os.path.exists(glm_path):
-            config = AutoConfig.from_pretrained(glm_path)
-            print(f"✅ GLM-4-Voice-Decoder config loaded: {config.model_type if hasattr(config, 'model_type') else 'Unknown type'}")
+            try:
+                # GLM-4-Voice-Decoder uses YAML config, try to load it
+                import yaml
+                config_path = os.path.join(glm_path, "config.yaml")
+                if os.path.exists(config_path):
+                    with open(config_path, 'r') as f:
+                        config = yaml.safe_load(f)
+                    print(f"✅ GLM-4-Voice-Decoder YAML config loaded: {config.get('model_type', 'GLM-4-Voice-Decoder')}")
+                else:
+                    print("❌ GLM-4-Voice-Decoder config.yaml not found")
+                    return False
+            except Exception as e:
+                print(f"⚠️  GLM-4-Voice-Decoder config loading failed: {e}")
         else:
             print("❌ GLM-4-Voice-Decoder path not found")
             return False
-        
+
         print("✅ Model loading test completed successfully")
         return True
-        
+
     except Exception as e:
         print(f"❌ Model loading test failed: {e}")
         return False

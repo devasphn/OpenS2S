@@ -190,6 +190,45 @@ class ModelDownloader:
         else:
             return "unknown"
 
+    def fix_openspeech_config(self, model_path: Path) -> bool:
+        """Fix OpenS2S model config.json to include required model_type"""
+        try:
+            import json
+            config_path = model_path / "config.json"
+
+            if config_path.exists():
+                with open(config_path, 'r') as f:
+                    config = json.load(f)
+
+                # Check if model_type is missing or incorrect
+                if "model_type" not in config or config.get("model_type") != "omnispeech":
+                    self.print_status("🔧 Fixing OpenS2S config.json...", "WARN")
+
+                    config.update({
+                        "model_type": "omnispeech",
+                        "architectures": ["OmniSpeechModel"],
+                        "auto_map": {
+                            "AutoConfig": "configuration_omnispeech.OmniSpeechConfig",
+                            "AutoModel": "modeling_omnispeech.OmniSpeechModel"
+                        }
+                    })
+
+                    with open(config_path, 'w') as f:
+                        json.dump(config, f, indent=2)
+
+                    self.print_status("✅ OpenS2S config.json fixed", "INFO")
+                    return True
+                else:
+                    self.print_status("✅ OpenS2S config.json already correct", "INFO")
+                    return True
+            else:
+                self.print_status("❌ OpenS2S config.json not found", "ERROR")
+                return False
+
+        except Exception as e:
+            self.print_status(f"❌ Failed to fix OpenS2S config: {e}", "ERROR")
+            return False
+
     def download_model_hf_hub(self, model_name: str) -> bool:
         """Download model using huggingface-hub with validation"""
         model_config = self.models[model_name]
@@ -214,6 +253,11 @@ class ModelDownloader:
 
             if is_valid:
                 self.print_status(f"✅ {model_name} downloaded and verified successfully", "INFO")
+
+                # Special handling for OpenS2S model
+                if model_name == "OpenS2S":
+                    self.fix_openspeech_config(model_config["local_dir"])
+
                 return True
             else:
                 self.print_status(f"❌ {model_name} download incomplete. Missing: {missing_files}", "ERROR")
@@ -237,6 +281,11 @@ class ModelDownloader:
                 is_valid, remaining_missing = self.verify_model(model_name)
                 if is_valid:
                     self.print_status(f"✅ {model_name} completed after individual file downloads", "INFO")
+
+                    # Special handling for OpenS2S model
+                    if model_name == "OpenS2S":
+                        self.fix_openspeech_config(model_config["local_dir"])
+
                     return True
                 else:
                     self.print_status(f"❌ {model_name} still incomplete after retry: {remaining_missing}", "ERROR")
