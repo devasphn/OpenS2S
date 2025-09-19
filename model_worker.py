@@ -271,12 +271,22 @@ class ModelWorker:
         max_new_tokens = min(int(params.get("max_new_tokens", 256)), 1024)
         do_sample = True if temperature > 0.001 else False
 
+        # Real-time optimizations
+        realtime_mode = params.get("realtime_mode", False)
+        if realtime_mode:
+            # Reduce block size for lower latency
+            block_size = 12  # Reduced from 24 for faster response
+            max_new_tokens = min(max_new_tokens, 256)  # Limit for real-time
+        else:
+            block_size = 24
+
         generation_config.update(
             **{
                 "temperature": temperature,
                 "top_p": top_p,
                 "max_new_tokens": max_new_tokens,
                 "do_sample": do_sample,
+                "use_cache": True,  # Enable KV cache for speed
             }
         )
         tts_generation_config.update(
@@ -312,11 +322,14 @@ class ModelWorker:
         flow_prompt_speech_token = torch.zeros(1, 0, dtype=torch.int64).to(device='cuda')
         tts_mels = []
         prev_mel = None
-        block_size = 24
+        # Use dynamic block size based on mode
+        current_block_size = block_size
         iter_text = iter(streamer)
         iter_units = iter(units_streamer)
         active_text = True
         active_units = True
+        start_time = time.time()
+
         while active_text or active_units:
             if active_text:
                 try:
@@ -329,14 +342,19 @@ class ModelWorker:
                 try:
                     new_unit = next(units_streamer)
                     units.append(new_unit - self.units_bias)
-                    if len(units) >= block_size:
+                    if len(units) >= current_block_size:
                         tts_token = torch.LongTensor(units).unsqueeze(0).to(device='cuda')
                         if prev_mel is not None:
                             prompt_speech_feat = torch.cat(tts_mels, dim=-1).transpose(1, 2)
+
+                        # Measure audio generation latency
+                        audio_start_time = time.time()
                         tts_speech, tts_mel = self.audio_decoder.token2wav(tts_token, uuid=this_uuid,
                             prompt_token=flow_prompt_speech_token.to(device='cuda'),
                             prompt_feat=prompt_speech_feat.to(device='cuda'),
                             finalize=False)
+                        audio_gen_time = time.time() - audio_start_time
+
                         prev_mel = tts_mel
                         tts_mels.append(tts_mel)
                         generated_audio = tts_speech.cpu()
@@ -346,7 +364,19 @@ class ModelWorker:
                         base64_string = base64.b64encode(audio_binary).decode("utf-8")
                         flow_prompt_speech_token = torch.cat((flow_prompt_speech_token, tts_token), dim=-1)
                         units = []
-                        yield json.dumps({"text": generated_text, "audio": base64_string, "finalize": False, "error_code": 0}).encode() + b"\0"
+
+                        # Include timing info for real-time monitoring
+                        response_data = {
+                            "text": generated_text,
+                            "audio": base64_string,
+                            "finalize": False,
+                            "error_code": 0,
+                            "timing": {
+                                "audio_generation_ms": audio_gen_time * 1000,
+                                "total_elapsed_ms": (time.time() - start_time) * 1000
+                            } if realtime_mode else {}
+                        }
+                        yield json.dumps(response_data).encode() + b"\0"
                 except StopIteration:
                     active_units = False
                     if units:
