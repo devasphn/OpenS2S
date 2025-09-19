@@ -41,23 +41,47 @@ fi
 
 echo "✅ Found OpenS2S files in current directory: $(pwd)"
 
-# 4. Install Flash Attention
-echo "⚡ Installing Flash Attention..."
-pip install flash-attn==2.7.0.post2 --no-build-isolation
+# 4. Install Dependencies (Fixed for Conflicts)
+echo "📚 Installing dependencies with conflict resolution..."
+if [ -f "install_dependencies.sh" ]; then
+    echo "Using optimized dependency installation script..."
+    chmod +x install_dependencies.sh
+    ./install_dependencies.sh
+else
+    echo "Using fallback installation method..."
 
-# 5. Install Project Dependencies
-echo "📚 Installing project dependencies..."
-pip install -r requirements.txt
+    # Install PyTorch first
+    echo "⚡ Installing PyTorch with CUDA 12.1..."
+    pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu121
 
-# 6. Install Additional Dependencies for Real-time Streaming
-echo "🔄 Installing real-time streaming dependencies..."
-pip install \
-    websockets==12.0 \
-    webrtcvad==2.0.10 \
-    pyaudio==0.2.14 \
-    python-multipart==0.0.9 \
-    aiofiles==24.1.0 \
-    psutil==5.9.8
+    # Install fixed requirements
+    if [ -f "requirements_fixed.txt" ]; then
+        echo "� Installing fixed requirements..."
+        pip install -r requirements_fixed.txt
+    else
+        echo "⚠️  Fixed requirements not found, using original with exclusions..."
+        # Install original requirements but exclude problematic packages
+        pip install -r requirements.txt --constraint <(echo "vllm==0.6.1.post1") 2>/dev/null || {
+            echo "Installing requirements without vllm..."
+            grep -v "vllm" requirements.txt | pip install -r /dev/stdin
+        }
+    fi
+
+    # Install Flash Attention separately
+    echo "⚡ Installing Flash Attention..."
+    pip install flash-attn==2.7.0.post2 --no-build-isolation || {
+        echo "⚠️  Flash Attention installation failed (optional)"
+    }
+
+    # Install real-time streaming dependencies
+    echo "🔄 Installing real-time streaming dependencies..."
+    pip install \
+        websockets==12.0 \
+        webrtcvad==2.0.10 \
+        python-multipart==0.0.9 \
+        aiofiles==24.1.0 \
+        psutil==5.9.8
+fi
 
 # 7. Download Model Checkpoints
 echo "🤖 Downloading model checkpoints..."

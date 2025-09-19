@@ -72,6 +72,9 @@ required_realtime_files=(
     "performance_config.py"
     "verify_setup.sh"
     "REALTIME_SETUP_GUIDE.md"
+    "requirements_fixed.txt"
+    "install_dependencies.sh"
+    "DEPENDENCY_FIX_GUIDE.md"
 )
 
 missing_realtime=0
@@ -171,11 +174,17 @@ if [ $total_missing -eq 0 ]; then
     echo ""
     print_status "✅ Setup verification PASSED!"
     echo ""
-    print_header "Next steps:"
+    print_header "Recommended installation approach:"
     echo "1. Make scripts executable: chmod +x *.sh"
-    echo "2. Run setup: ./runpod_setup.sh"
-    echo "3. Start services: ./start_realtime_services.sh"
-    echo "4. Access interface: http://your-runpod-url:8000"
+    echo "2. Install dependencies (conflict-free): ./install_dependencies.sh"
+    echo "3. Run setup: ./runpod_setup.sh"
+    echo "4. Start services: ./start_realtime_services.sh"
+    echo "5. Access interface: http://your-runpod-url:8000"
+    echo ""
+    print_header "Alternative if you encounter dependency conflicts:"
+    echo "1. Read the guide: cat DEPENDENCY_FIX_GUIDE.md"
+    echo "2. Use fixed requirements: pip install -r requirements_fixed.txt"
+    echo "3. Continue with setup: ./runpod_setup.sh"
 else
     echo ""
     print_error "❌ Setup verification FAILED!"
