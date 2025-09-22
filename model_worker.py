@@ -15,6 +15,9 @@ import tempfile
 import logging
 from io import BytesIO
 import torchaudio
+import psutil
+import gc
+from collections import defaultdict
 
 from fastapi import FastAPI, Request, BackgroundTasks
 from fastapi.responses import StreamingResponse
@@ -39,14 +42,42 @@ from src.modeling_omnispeech import OmniSpeechModel
 from src.utils import get_waveform
 from src.feature_extraction_audio import WhisperFeatureExtractor
 
-sys.path.append("cosyvoice")
-sys.path.append("third_party/Matcha-TTS")
+# Removed unused sys.path additions for cosyvoice and Matcha-TTS
+# These components are not used in the production inference pipeline
 
 GB = 1 << 30
 
 worker_id = str(uuid.uuid4())[:6]
 global_counter = 0
 model_semaphore = None
+
+# Performance monitoring
+performance_stats = defaultdict(list)
+memory_pool = {}
+
+def log_performance_stats():
+    """Log performance statistics"""
+    if performance_stats:
+        logger.info("=== Performance Statistics ===")
+        for metric, values in performance_stats.items():
+            if values:
+                avg = sum(values) / len(values)
+                logger.info(f"{metric}: avg={avg:.3f}ms, samples={len(values)}")
+
+        # Log memory usage
+        process = psutil.Process()
+        memory_info = process.memory_info()
+        logger.info(f"Memory: RSS={memory_info.rss / 1024 / 1024:.1f}MB")
+
+        if torch.cuda.is_available():
+            gpu_memory = torch.cuda.memory_allocated() / 1024 / 1024
+            logger.info(f"GPU Memory: {gpu_memory:.1f}MB")
+
+def optimize_memory():
+    """Optimize memory usage"""
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
 
 logging.basicConfig(
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -106,19 +137,60 @@ def pretty_print_semaphore(semaphore):
     return f"Semaphore(value={semaphore._value}, locked={semaphore.locked()})"
 
 def load_pretrained_model(model_path):
+    """Load pretrained model with optimizations"""
+    logger.info(f"Loading model from {model_path}")
+    start_time = time.time()
+
+    # Load tokenizers
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     tts_tokenizer = AutoTokenizer.from_pretrained(os.path.join(model_path, "tts"))
+
+    # Load generation configs
     generation_config = GenerationConfig.from_pretrained(model_path)
     tts_generation_config = GenerationConfig.from_pretrained(os.path.join(model_path, "tts"))
-    model = OmniSpeechModel.from_pretrained(model_path, torch_dtype=torch.bfloat16)
+
+    # Load model with optimizations
+    model = OmniSpeechModel.from_pretrained(
+        model_path,
+        torch_dtype=torch.bfloat16,
+        device_map="auto",
+        low_cpu_mem_usage=True
+    )
+
+    # Move to GPU and optimize
     model.cuda()
+    model.eval()  # Set to evaluation mode
+
+    # Enable optimizations
+    if hasattr(model, 'gradient_checkpointing_disable'):
+        model.gradient_checkpointing_disable()
+
+    load_time = (time.time() - start_time) * 1000
+    logger.info(f"Model loaded in {load_time:.1f}ms")
+    performance_stats['model_load_time'].append(load_time)
+
     return tokenizer, tts_tokenizer, model, generation_config, tts_generation_config
 
 def load_flow_model(flow_path):
-    flow_config = os.path.join(args.flow_path, "config.yaml")
-    flow_checkpoint = os.path.join(args.flow_path, 'flow.pt')
-    hift_checkpoint = os.path.join(args.flow_path, 'hift.pt')
+    """Load flow model with optimizations"""
+    logger.info(f"Loading flow model from {flow_path}")
+    start_time = time.time()
+
+    flow_config = os.path.join(flow_path, "config.yaml")
+    flow_checkpoint = os.path.join(flow_path, 'flow.pt')
+    hift_checkpoint = os.path.join(flow_path, 'hift.pt')
+
+    # Verify files exist
+    for file_path in [flow_config, flow_checkpoint, hift_checkpoint]:
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"Required file not found: {file_path}")
+
     audio_decoder = AudioDecoder(flow_config, flow_checkpoint, hift_checkpoint, device="cuda")
+
+    load_time = (time.time() - start_time) * 1000
+    logger.info(f"Flow model loaded in {load_time:.1f}ms")
+    performance_stats['flow_load_time'].append(load_time)
+
     return audio_decoder
 
 

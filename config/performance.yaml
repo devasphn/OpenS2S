@@ -1,0 +1,122 @@
+# OpenS2S Performance Configuration
+# Ultra-low latency settings for production deployment
+
+# Model Configuration
+model:
+  # Use mixed precision for faster inference
+  torch_dtype: "bfloat16"
+  # Enable model optimizations
+  enable_optimizations: true
+  # Model caching settings
+  cache_models: true
+  # Maximum batch size for inference
+  max_batch_size: 4
+
+# Audio Processing Configuration
+audio:
+  # Sample rate for audio processing
+  sample_rate: 16000
+  # Chunk duration in seconds (100ms for low latency)
+  chunk_duration: 0.1
+  # Maximum audio duration in seconds
+  max_audio_duration: 30.0
+  # Audio buffer size
+  buffer_size: 1024
+  # Enable audio compression
+  enable_compression: true
+
+# VAD Configuration
+vad:
+  # VAD mode: "webrtc" or "silero"
+  mode: "webrtc"
+  # Aggressiveness level (0-3, higher = more aggressive)
+  aggressiveness: 2
+  # Minimum speech duration in seconds
+  min_speech_duration: 0.3
+  # Maximum silence duration in seconds
+  max_silence_duration: 1.0
+  # VAD frame duration in ms
+  frame_duration: 30
+
+# WebSocket Configuration
+websocket:
+  # Maximum message size in bytes
+  max_message_size: 1048576  # 1MB
+  # Connection timeout in seconds
+  connection_timeout: 30
+  # Ping interval in seconds
+  ping_interval: 20
+  # Maximum concurrent connections
+  max_connections: 50
+  # Enable message compression
+  enable_compression: true
+
+# Performance Monitoring
+monitoring:
+  # Enable performance logging
+  enable_logging: true
+  # Log interval in seconds
+  log_interval: 60
+  # Enable memory monitoring
+  enable_memory_monitoring: true
+  # Enable GPU monitoring
+  enable_gpu_monitoring: true
+
+# Memory Management
+memory:
+  # Enable automatic garbage collection
+  enable_gc: true
+  # GC interval in seconds
+  gc_interval: 30
+  # Enable CUDA memory optimization
+  enable_cuda_optimization: true
+  # Memory pool size for audio buffers
+  audio_buffer_pool_size: 100
+
+# Network Configuration
+network:
+  # Enable keep-alive for HTTP connections
+  enable_keepalive: true
+  # Connection pool size
+  connection_pool_size: 20
+  # Request timeout in seconds
+  request_timeout: 10
+  # Enable request compression
+  enable_compression: true
+
+# Latency Targets (in milliseconds)
+latency_targets:
+  # End-to-end latency target
+  end_to_end: 500
+  # VAD detection latency
+  vad_detection: 50
+  # Model inference latency
+  model_inference: 200
+  # Audio generation latency
+  audio_generation: 150
+  # Network overhead
+  network_overhead: 50
+
+# GPU Configuration
+gpu:
+  # Enable mixed precision training
+  enable_mixed_precision: true
+  # Enable tensor cores
+  enable_tensor_cores: true
+  # GPU memory fraction to use
+  memory_fraction: 0.9
+  # Enable memory growth
+  allow_memory_growth: true
+
+# Production Settings
+production:
+  # Enable production mode
+  enable: true
+  # Disable debug logging
+  disable_debug: true
+  # Enable error recovery
+  enable_error_recovery: true
+  # Maximum retry attempts
+  max_retries: 3
+  # Health check interval in seconds
+  health_check_interval: 30

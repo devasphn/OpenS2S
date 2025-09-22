@@ -10,6 +10,9 @@ import logging
 from typing import Optional, Tuple, List
 from collections import deque
 import torchaudio
+import time
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +77,16 @@ class VADProcessor:
         self.speech_start_time = None
         self.silence_start_time = None
         self.frame_count = 0
+
+        # Performance monitoring
+        self.processing_times = deque(maxlen=1000)
+        self.last_stats_time = time.time()
+
+        # Threading for parallel processing
+        if not hasattr(self, 'executor'):
+            self.executor = ThreadPoolExecutor(max_workers=2)
+        if not hasattr(self, '_processing_lock'):
+            self._processing_lock = threading.Lock()
         
     def process_audio_chunk(self, audio_chunk: np.ndarray) -> Tuple[bool, Optional[np.ndarray], dict]:
         """
